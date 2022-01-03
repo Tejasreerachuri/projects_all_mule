@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="69ec6e20-22f3-42e7-9121-9418031c7078" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<file:config name="ReadFile" doc:name="File Config" doc:id="7e20a8a7-975f-4dcb-b192-a1434c4db7cf" >
+		<file:connection workingDir="C:\Users\Teja sree\Documents\readfiles" />
+	</file:config>
+	<flow name="readoperationFlow" doc:id="cc42d0e1-6f01-4ba7-bb93-9f5345f61d2a" >
+		<http:listener doc:name="Listener" doc:id="91b9e8db-ccec-42df-946b-9a40fdd7c607" config-ref="HTTP_Listener_config" path="/read"/>
+		<file:read doc:name="Read" doc:id="0d1b169b-2b88-45df-8876-5e8a04d1018f" config-ref="ReadFile" path="readfile1.txt" target="fileread1var"/>
+		<ee:transform doc:name="Transform Message" doc:id="5fe7b1dd-af90-41d9-b15e-d2eda7d96e9c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	
+	Name:"Tejasree",
+	FileOutput:vars.readfile1var 
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="read Logger" doc:id="9af7b442-8a8e-4d49-8008-395ffc0279d0" message="#[payload]" />
+	</flow>
+</mule>
