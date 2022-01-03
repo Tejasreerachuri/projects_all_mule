@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="fc7387e8-9f00-4e26-9ffd-6ec51e27ff77" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="assestment-1Flow" doc:id="09836cd8-4e7c-442b-ba05-cec3cb78e4c1" >
+		<http:listener doc:name="Listener" doc:id="e80b6a51-c644-4082-b8f5-2434cc461dd9" config-ref="HTTP_Listener_config" path="/Hello"/>
+		<logger level="INFO" doc:name="Logger" doc:id="a5705366-8dcd-4e52-ac06-c61fbd029a62" message="#[uuid]"/>
+		<ee:transform doc:name="Transform Message" doc:id="829ee7f9-8f02-4028-ab98-a5c1c66c653e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+"root": payload
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="45b4d230-557c-41e6-8a23-a672ba55b48d" message="#[uuid]"/>
+	</flow>
+</mule>
