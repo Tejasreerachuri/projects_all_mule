@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:java="http://www.mulesoft.org/schema/mule/java" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1ab04862-8016-4314-93c7-38c24f1022f1" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="javacallFlow" doc:id="d56a3c67-0511-442f-8a34-e341715466f0" >
+		<http:listener doc:name="Listener" doc:id="3be96ba2-3271-4c54-8b69-b3676ae7a687" path="/java" config-ref="HTTP_Listener_config"/>
+		<java:invoke-static method="getwelcomemessage()" doc:name="Invoke static" doc:id="ed61411a-e2f4-4a0c-924f-b3f036d15673" class="javacall.javademo"/>
+		<ee:transform doc:name="Transform Message" doc:id="032f4396-e9eb-4faf-99ef-065d63a864dd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import java!javacall::javademo
+---
+{
+	Note: javademo::getwelcomemessage(),
+	"name":"tejasree",
+	"location":"Hyderabad"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b31cd8ce-71e5-4b37-b0b1-71f8ff0c8085" message="#[payload]"/>
+	</flow>
+</mule>
