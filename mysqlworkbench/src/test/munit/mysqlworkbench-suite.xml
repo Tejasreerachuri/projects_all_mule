@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="mysqlworkbench-suite.xml" />
+	<munit:test name="mysqlworkbenchFlow-test" doc:id="5fc7d544-80e6-4076-b8f7-c72f9e51bf66" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Insert" doc:id="5f257003-f4c8-431d-b85c-c611f732991f" processor="db:insert">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="f25987f8-36e3-49bf-b32f-bbee214111fe" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://mysqlworkbenchFlowtest\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="b07103d7-ab8d-4bdd-a5c4-281b5ee8cb46" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://mysqlworkbenchFlowtest\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://mysqlworkbenchFlowtest\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to mysqlworkbenchFlow" doc:id="9fad201e-7bb8-4e69-980b-2043891c379f" name="mysqlworkbenchFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="33f790fa-8208-4764-bed0-eb31008fe285" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import mysqlworkbenchFlowtest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="mysqlworkbenchFlow1-test" doc:id="0b0e1e3c-7f58-4178-b919-4dd7eb2f7261" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select" doc:id="8f41506f-e2fd-449f-b3d9-449c07f17909" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="57cecde7-5aac-4160-89a8-1b607242d4d9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://mysqlworkbenchFlow1test\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="5d3fc663-a0e3-4fd9-8f71-ef49212e3d68" >
+				<munit:payload value="#[readUrl('classpath://mysqlworkbenchFlow1test\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://mysqlworkbenchFlow1test\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to mysqlworkbenchFlow1" doc:id="58ac8f6e-98f0-4d82-ba29-aaa9f7261d90" name="mysqlworkbenchFlow1"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="308405bb-738c-4cda-96b2-52dfa964ed4f" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import mysqlworkbenchFlow1test::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

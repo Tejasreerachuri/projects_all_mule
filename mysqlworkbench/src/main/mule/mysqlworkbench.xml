@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c8840466-a323-46d6-bf17-d3ea1eae4c00" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="72e3ae28-5b0d-47ce-966a-fb8e72d8b7c1" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="learndb" />
+	</db:config>
+	<flow name="mysqlworkbenchFlow" doc:id="9f7f981a-ce94-4ef0-9752-cfea102fb568" >
+		<http:listener doc:name="Listener" doc:id="43d729b4-82b0-4822-885c-428f0a1fa3bb" config-ref="HTTP_Listener_config" path="/insertdb"/>
+		<db:insert doc:name="Insert" doc:id="f25987f8-36e3-49bf-b32f-bbee214111fe" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO learndb.account_details1 (accountno,name,mobileno,address) VALUES (:accountno,:name,:mobileno,:address)
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	accountno : payload.accountno,
+	name : payload.name,
+	mobileno : payload.mobileno,
+	address : payload.address
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="b8b6087d-e42e-4b36-b3c1-f0006d69752b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="mysqlworkbenchFlow1" doc:id="e6980718-8533-4398-b56c-e1bee4037dbd" >
+		<http:listener doc:name="Listener" doc:id="8000a077-99d5-49ad-b4c1-a6af82956e97" config-ref="HTTP_Listener_config" path="/selectdb"/>
+		<db:select doc:name="Select" doc:id="57cecde7-5aac-4160-89a8-1b607242d4d9" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM learndb.account_details1 where name=:name]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	
+	name : attributes.queryParams.name
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="318509b2-16f7-4e0a-acca-13278b513dcd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
