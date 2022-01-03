@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e5010428-cd02-4807-9247-da212d0c544b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="58101868-4b30-4ef3-8762-fabe5f158c74" >
+		<wsc:connection wsdlLocation="http://dneonline.com/calculator.asmx?wsdl" service="Calculator" port="CalculatorSoap12" address="http://dneonline.com/calculator.asmx" />
+	</wsc:config>
+	<flow name="choice-routerFlow" doc:id="666ab69b-679a-4649-9d98-929b5e505fcc" >
+		<http:listener doc:name="Listener" doc:id="566bc72b-738c-4580-81f1-d1146738dce4" config-ref="HTTP_Listener_config" path="/calculator"/>
+		<logger level="INFO" doc:name="Logger" doc:id="7e716e74-4560-429c-91cc-c4155aaebf63" message="#[payload]"/>
+		<choice doc:name="Choice" doc:id="9d970612-9829-4d4c-8836-c5ad2f0a04d6" >
+			<when expression='#[payload."operation" == "add"]'>
+				<logger level="INFO" doc:name="addition operation" doc:id="e3cf58ef-b17c-43eb-905c-1a69fb12f56f" message="addition operation is getting executed"/>
+				<ee:transform doc:name="Transform Message" doc:id="c8b5ed3b-c6e3-40e3-a10e-163d669248a4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Add: {
+		ns0#intA: payload.value1,
+		ns0#intB: payload.value2
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<wsc:consume doc:name="Consume" doc:id="c3680ba3-45c3-4d8e-9b4a-05e68552bf4d" config-ref="Web_Service_Consumer_Config" operation="Add"/>
+				<ee:transform doc:name="Transform Message" doc:id="9c22ac9f-2ea9-4656-806d-547a2d97ccdd" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	"Result":payload.body.ns0#AddResponse.ns0#AddResult
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[payload."operation" == "sub"]'>
+				<logger level="INFO" doc:name="subtraction operation" doc:id="6d6907ad-01ed-4cca-aa1a-e4a9d1dae253" message="subtraction operation is getting executed"/>
+				<ee:transform doc:name="Transform Message" doc:id="4fbadc5a-9fad-4d5f-a30e-fac80be34721" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Subtract: {
+		ns0#intA: payload.value1,
+		ns0#intB: payload.value2
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<wsc:consume doc:name="Consume" doc:id="b7ed6492-7478-4a0a-bc5c-3d5e33cb243e" config-ref="Web_Service_Consumer_Config" operation="Subtract"/>
+				<ee:transform doc:name="Transform Message" doc:id="950c6d94-bde7-425e-b5fb-e5ea4d7a2849" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	"Result":payload.body.ns0#SubtractResponse.ns0#SubtractResult
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[payload."operation" == "mul"]'>
+				<logger level="INFO" doc:name="multiplication operation" doc:id="c8f20fc7-7c7e-49a9-ae9d-e2a92a0b2fdf" message="multiplication  operation is getting executed"/>
+				<ee:transform doc:name="Transform Message" doc:id="292fd630-4cc1-4ed6-bc93-a7439101634c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Multiply: {
+		ns0#intA: payload.value1,
+		ns0#intB: payload.value2
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<wsc:consume doc:name="Consume" doc:id="48d2fe48-c210-436b-98f3-45e07cdf5240" config-ref="Web_Service_Consumer_Config" operation="Multiply"/>
+				<ee:transform doc:name="Transform Message" doc:id="3430bfb6-8328-44f7-9702-4c75865e1c7a" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	"Result":payload.body.ns0#MultiplyResponse.ns0#MultiplyResult
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<when expression='#[payload."operation" == "div"]'>
+				<logger level="INFO" doc:name="division operation" doc:id="07190ac3-337d-408b-a8ba-8f17ccb3a429" message="division  operation is getting executed"/>
+				<ee:transform doc:name="Transform Message" doc:id="c9894a8b-9dff-467c-9000-de7362408cd9" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Divide: {
+		ns0#intA: payload.value1,
+		ns0#intB: payload.value2
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<wsc:consume doc:name="Consume" doc:id="608e6376-8992-410e-83d9-d2de96cf29b1" config-ref="Web_Service_Consumer_Config" operation="Divide"/>
+				<ee:transform doc:name="Transform Message" doc:id="e3fa1910-dc35-4442-8e74-604ccae5cacc" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	"Result":payload.body.ns0#DivideResponse.ns0#DivideResult
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="5cb7d0e7-7d11-4073-9abd-940ae85eec9b" message='#[payload."operation" ++ "is not a valid operation"]'/>
+				<ee:transform doc:name="Transform Message" doc:id="03537de0-0489-4519-bee4-a600c3668fc2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"result":payload."operation" ++ "is not a valid operation"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
