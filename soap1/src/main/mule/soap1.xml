@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6b379b65-82e9-44d6-8657-2df4e8ca7c14" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="470bfd50-c30e-485e-a734-554cc8fb5a93" >
+		<wsc:connection wsdlLocation="https://www.dataaccess.com/webservicesserver/NumberConversion.wso?WSDL" service="NumberConversion" port="NumberConversionSoap12" address="https://www.dataaccess.com/webservicesserver/NumberConversion.wso" />
+	</wsc:config>
+	<flow name="soap1Flow" doc:id="eaf427dc-acc1-4be2-8373-5ec6091484e1" >
+		<http:listener doc:name="Listener" doc:id="2b3132c6-6e9b-4cfe-8d80-4718c534f855" config-ref="HTTP_Listener_config" path="/add"/>
+		<choice doc:name="Choice" doc:id="1ceeb28c-d706-4375-9f0d-d385fcc20a6b" >
+			<when expression='#["((!is Blank(payload.number1)) and (!is Blank(payload.number2)))"]'>
+				<ee:transform doc:name="Transform Message" doc:id="e6826d13-b18f-40b3-9b9b-8fba3724e325">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://www.dataaccess.com/webservicesserver/
+---
+{
+	ns0#NumberToWords: {
+		ns0#ubiNum: payload.value1
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="b0f20f5c-5d61-4e1f-b794-e1d44692d28f" message="input is not in correct format"/>
+				<set-payload value="input is not in correct format" doc:name="Set Payload" doc:id="fc8f2f0c-da31-4794-9b1b-12867404e728" />
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
