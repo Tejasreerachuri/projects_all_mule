@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="69e9287f-6960-4407-8c98-ac31175b2b61" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="fc10613b-b785-41e2-bb70-5aa2399c419c" >
+		<wsc:connection wsdlLocation="wsdl\calculator1.wsdl.xml" service="Calculator" port="CalculatorSoap12" address="http://dneonline.com/calculator.asmx" >
+			<wsc:web-service-security actor="http://schemas.xmlsoap.org/soap/actor/next" />
+		</wsc:connection>
+	</wsc:config>
+	<flow name="soap-comsumeFlow" doc:id="5d34b3fc-99cb-47ab-90fb-abf7f258eb97" >
+		<http:listener doc:name="Listener" doc:id="e5211cbe-175d-4e16-878e-8367fe1b8363" config-ref="HTTP_Listener_config" path="/soap"/>
+		<choice doc:name="Choice" doc:id="28f3d5d0-11cc-4303-b378-e9b0a6f51c24" >
+			<when expression="#[payload.number1&gt;payload.number2]">
+				<ee:transform doc:name="Transform Message" doc:id="885f0542-25ed-4bc0-ab3c-e50b4890e186">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Divide: {
+		ns0#intA: payload.number1,
+		ns0#intB: payload.number2
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<wsc:consume operation="Divide" doc:name="Consume" doc:id="7619cac8-99dd-45c4-a9de-b2b65b0b07cb" config-ref="Web_Service_Consumer_Config" />
+				<ee:transform doc:name="Transform Message" doc:id="9f808f94-25e8-4fc2-b605-886c7f93f7e3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	"Result":payload.body
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="a1f1eda2-0bb7-46da-bc66-95ca217a7523" message="first number is lessthan second number hence not performing operation"/>
+				<set-payload value="first number is lessthan second number hence not performing operation" doc:name="Set Payload" doc:id="14b9fedf-d5b5-46b1-a998-edf8d3929366" />
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
