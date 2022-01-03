@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e397a36a-e748-4930-bd90-391392df76d3" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<validation:config name="Validation_Config" doc:name="Validation Config" doc:id="7ca9de2c-c2eb-4421-9580-7f2ba335e362" />
+	<configuration doc:name="Configuration" doc:id="dd17c598-1f71-4ccb-aa61-5f2077ea5b24" defaultErrorHandler-ref="globalError_Handler" />
+	<flow name="raise-errorFlow1" doc:id="904f6c85-f96e-426e-baa4-84cce1d225d9" >
+		<http:listener doc:name="Listener" doc:id="9bf1e872-8eb7-4f20-a66f-22cf62e277aa" config-ref="HTTP_Listener_config" path="/try"/>
+		<set-payload value='#[3000]' doc:name="Set Payload" doc:id="c4a4a943-bb89-4e69-bda4-ce631daa51eb" />
+		<try doc:name="Try" doc:id="37ed96e1-e6bd-4bed-9a99-12143093483a" >
+			<validation:is-number numberType="INTEGER" doc:name="Is number" doc:id="05ec07ed-8b8a-4359-abd5-8f35be7d8879" value="#[payload]" minValue="1000" maxValue="60000"/>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="189c05e8-d653-4cdd-acac-aa10b73944c0" type="ANY">
+				<set-payload value='#["try block error handlling"]' doc:name="Set Payload" doc:id="3cc05505-f91a-441a-82e5-3ac1cc2701f4" />
+			</on-error-continue>
+			</error-handler>
+		</try>
+		<ee:transform doc:name="Transform Message" doc:id="880ff29e-9acf-4c01-8ae2-f0898b7e881c">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+	</flow>
+	<flow name="raise-errorFlow2" doc:id="17ae786e-9d5c-447b-996d-2220882004bb" >
+		<http:listener doc:name="Listener" doc:id="b43dad37-64fc-47f1-940f-f973520925c9" config-ref="HTTP_Listener_config" path="/trypropagate"/>
+		<set-payload doc:name="Set Payload" doc:id="87c71f44-abd1-4e6e-9118-63d96a3dcb6f" value="#[3234443]"/>
+		<validation:is-number doc:name="Is number" doc:id="08d1f89f-0ccf-44a5-8d22-9eaeff4296ec" config-ref="Validation_Config" value="#[payload]" minValue="1000" maxValue="5000" numberType="INTEGER"/>
+		<ee:transform doc:name="Transform Message" doc:id="8a6cd43a-9ef7-41bd-b82c-32a501d8f590" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="raise-errorFlow" doc:id="d22b74bb-7212-4257-be4d-0a6abf5ea263" >
+		<http:listener doc:name="Listener" doc:id="a6c80354-7b1a-48d8-9b02-8cd0ac2c867e" config-ref="HTTP_Listener_config" path="/error"/>
+		<choice doc:name="Choice" doc:id="6dbba922-5835-4233-9589-db70ebd4f292" >
+			<when expression="#[isEmpty(payload)]">
+				<raise-error doc:name="Raise error" doc:id="2c955811-9366-473d-a8c5-2e23af3e4b6c" type="NO:PAYLOAD" description="NO PAYLOAD FOUND"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="e8b31ebb-46a7-409f-9a4c-260953cacdd2">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/jSON
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
