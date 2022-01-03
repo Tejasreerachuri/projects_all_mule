@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="a2631f98-5af9-41f6-aff7-cb574494d295" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="c634b17a-3a24-485e-8862-dbac197198f4" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<flow name="assessment-2Flow" doc:id="55d7a8da-e2ce-45dd-bd98-05fbfde8a94c" >
+		<http:listener doc:name="Listener" doc:id="7f976bae-1ffb-48a6-946b-7026b69ca7e0" config-ref="HTTP_Listener_config" path="/test2"/>
+		<set-variable value="#[attributes.queryParams.id]" doc:name="Set Variable" doc:id="1f205ec2-a516-45a7-b586-728990af8932" variableName="id"/>
+		<choice doc:name="Choice" doc:id="d354f7f7-ec45-48b3-b2ac-fab6f3b2a2d2" >
+			<when expression="#[vars.id &gt;= 10001 and vars.id &lt;=99999]">
+				<ee:transform doc:name="Transform Message" doc:id="75bd4e78-5286-4fdb-b935-6af3e573e8a8" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "valid id"
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="135fdf48-83c6-42e5-9688-80d95694a7d2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"invalid id"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="assessment-2Flow1" doc:id="41228f1d-269e-4a96-b6d2-0a94fa3e3283" >
+		<http:listener doc:name="Listener" doc:id="96edbb31-0565-4dd8-8b28-f518fb3a98b6" config-ref="HTTP_Listener_config1" path="/1b"/>
+		<set-variable value="#[attributes.queryParams.size]" doc:name="Set Variable" doc:id="4bbbea36-e18b-479a-935e-c2a18d140a3c" variableName="size"/>
+		<ee:transform doc:name="Transform Message" doc:id="cb557d62-4c91-4a4e-839e-c854210057bf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (vars.size=="s")
+{
+	"amount":"30"
+}
+else if(vars.size=="m") 
+{
+	"amount":"50"
+}
+ else 
+ {
+ 	"amount":"80"
+ }
+    ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
