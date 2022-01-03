@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="48929cfb-7d1f-4bcb-aeeb-9972311760bd" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="81bbd97b-5796-44fb-8d25-55ac9f57f04c" >
+		<http:request-connection host="jgyjrie" />
+	</http:request-config>
+	<flow name="errorhandlingFlow" doc:id="130ed3e3-2f53-49a3-8062-4cfa6fe0c44f" >
+		<http:listener doc:name="Listener" doc:id="2ef47c0c-ca5f-43ef-b6fc-1531310ee521" config-ref="HTTP_Listener_config" path="/errorhandling">
+			<http:error-response >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<set-payload value='#["main flow"]' doc:name="Set Payload" doc:id="2da805b3-48e2-4168-9dc8-17ae09ab578c" />
+		<http:request method="GET" doc:name="Request" doc:id="db44a779-59ca-4f09-9a40-02b34277ee6b" config-ref="HTTP_Request_configuration" path="/users"/>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ed858504-678e-4700-ba81-14051c3b75a7" type="HTTP:CONNECTIVITY">
+				<set-payload value='#["this is default error"]' doc:name="Set Payload" doc:id="aab0acd3-6bff-437d-9d3c-ca55f3f42472" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="errorhandlingFlow1" doc:id="7972b258-15c6-42ca-9fe3-4f3a15537380" >
+		<http:listener doc:name="Listener" doc:id="dda9870d-1cf9-48ce-89b8-01657f842492" config-ref="HTTP_Listener_config" path="/error">
+			<http:error-response >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<flow-ref doc:name="Flow Reference" doc:id="18d1c7f0-38ce-473e-8c2f-ef1625a6c28c" name="privateflow"/>
+		<set-payload value='#["this is the error handling"]' doc:name="Set Payload" doc:id="cf9e7d27-5400-49a3-8e8e-ee84971e6f2d" />
+	</flow>
+	<flow name="privateflow" doc:id="62a36810-df69-4def-9cef-4a833a987ef3" >
+		<http:request method="GET" doc:name="Request" doc:id="5afe1d49-6333-405e-bc1f-6a835cc2e734" config-ref="HTTP_Request_configuration" path="/users"/>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagatesub flow" doc:id="d5da0100-f6e6-46ce-b0df-603afc7154f9" type="HTTP:CONNECTIVITY">
+				<set-payload value='#["default error"]' doc:name="Set Payload" doc:id="9ad0bd36-bace-4ac5-952a-da8e0db5111a" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
