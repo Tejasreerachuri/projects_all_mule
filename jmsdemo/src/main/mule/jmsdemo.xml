@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="def86e91-994e-47c6-9cf0-70ce518bf6d4" >
+		<jms:active-mq-connection username="admin" password="admin" >
+			<jms:factory-configuration brokerUrl="tcp://localhost:61616" />
+		</jms:active-mq-connection>
+	</jms:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="0ebfb76c-2d4e-4fe1-98b2-5df71a8a88d6" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="jmsdemoFlow" doc:id="adf2c580-f15d-4f61-9fcc-e1749e53f480" >
+		<jms:listener doc:name="On New Message" doc:id="f03d8930-baeb-4f3d-9e42-18bb88c38098" destination="Queue.User.Consume" config-ref="JMS_Config">
+			<jms:consumer-type >
+				<jms:queue-consumer />
+			</jms:consumer-type>
+			<jms:response >
+				<jms:reply-to destination="Queue.User.Consume"/>
+			</jms:response>
+		</jms:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="e629374b-805e-47b7-9852-9adc542e8df0" message="#[payload]"/>
+	</flow>
+	<flow name="jmsdemoFlow1" doc:id="8d47d460-45dc-42f1-8a89-c196ba4a0635" >
+		<http:listener doc:name="Listener" doc:id="dee04924-1f64-48eb-b057-495861415e78" config-ref="HTTP_Listener_config" path="/test"/>
+		<jms:consume doc:name="Consume" doc:id="53d9b7b1-3872-4486-92d9-bad0580c0a84" config-ref="JMS_Config" destination="Queue.User.Consume" maximumWait="10" maximumWaitUnit="SECONDS">
+			<jms:consumer-type >
+				<jms:queue-consumer />
+			</jms:consumer-type>
+		</jms:consume>
+		<logger level="INFO" doc:name="Logger" doc:id="3b883f0d-5d23-472e-9bf1-f3725918c67e" message="#[payload]"/>
+	</flow>
+</mule>
