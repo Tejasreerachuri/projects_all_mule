@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f0ade034-a02d-42c0-bc3f-750f5d0e2efd" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="c35bc96d-daaa-4fd8-ab65-df20e2a46537" >
+		<db:my-sql-connection host="localhost" user="root" password="root" port="3306" database="learndb"/>
+	</db:config>
+	<flow name="insert-customerFlow" doc:id="21e59da8-5901-4ef5-8a50-6f1f257bb859" >
+		<http:listener doc:name="Listener" doc:id="6fbded18-85df-49a4-b733-520a26a6e529" config-ref="HTTP_Listener_config" path="/customerinsert"/>
+		<db:insert doc:name="Insert" doc:id="ec2dc181-80c6-4ab5-bf16-fe97d68ff328" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO learndb.customer_details (customer_id,customer_name,dob,gender,city) VALUES (:customer_id,:customer_name,:dob,:gender,:city)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	customer_id : payload.customer_id,
+	customer_name : payload.customer_name,
+	dob : payload.dob,
+	gender : payload.gender,
+	city : payload.city
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="d9cf4642-fe10-4022-bbc0-497aaeece902" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="5b522389-d4ca-479d-a53e-e8a0d464ba7f" message="#[payload]"/>
+	</flow>
+	<flow name="insert-customerFlow2" doc:id="8e979bde-9236-4c3a-9e4f-0267835b44b1" >
+		<http:listener doc:name="Listener" doc:id="81da88a3-7ae8-468e-8168-66f9e2bcb655" config-ref="HTTP_Listener_config" path="/update"/>
+		<db:update doc:name="Update" doc:id="c3489b9e-0110-4689-8c2a-654e1e040259" config-ref="Database_Config">
+			<db:sql ><![CDATA[update customer_details set dob = '25-09-2000' where customer_id = 11]]></db:sql>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="ca7f950c-a0e8-4be5-a6d1-c8ae0514c96f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="insert-customerFlow1" doc:id="f30afdb5-2f61-4636-8ad1-597fac259e4a" >
+		<http:listener doc:name="Listener" doc:id="159eeac7-3ffc-45e7-a797-ac22b15af107" config-ref="HTTP_Listener_config" path="/customerselect"/>
+		<db:select doc:name="Select" doc:id="e02652ca-611b-4491-8dca-e0956c76e7bf" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM learndb.customer_details where customer_name=:name;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	name : attributes.queryParams.name
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="3b70192c-2dca-4345-8580-a47343c9a547" >
+			<when expression="#[isEmpty(payload)]">
+				<ee:transform doc:name="Transform Message" doc:id="a0acce1d-9063-4063-ad1b-46ea6f7c3f02" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="ad4e4b05-88af-4945-b6de-3f3129c229f0" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="d5c66e76-3f39-4b27-98f3-6e311b84255f" message="#[payload]"/>
+	</flow>
+	<flow name="insert-customerFlow3" doc:id="5c13d3b3-1918-4fb2-954c-ff8319225324" >
+		<http:listener doc:name="Listener" doc:id="78846c40-f7d1-4cd4-89d8-66a73e59cf91" config-ref="HTTP_Listener_config" path="/delete"/>
+		<db:delete doc:name="Delete" doc:id="6f6796ce-9afe-4238-8f9f-eeeb38cce371" config-ref="Database_Config">
+			<db:sql ><![CDATA[delete from customer_details where customer_name = 'anu']]></db:sql>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="1dfa09cd-fb32-41f8-8560-2dbe2933db29" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

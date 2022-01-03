@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="insert-customer-suite.xml" />
+	<munit:test name="insert-customerFlow3-test" doc:id="5f2496e5-8b0a-48b7-b097-94d552fe228a" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Delete" doc:id="faf7fa43-3195-4546-aa3a-57ed8bc13442" processor="db:delete">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="6f6796ce-9afe-4238-8f9f-eeeb38cce371" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://insertcustomerFlow3test\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="a4039be5-0984-4b89-ae45-49f61e9b71c4" >
+				<munit:payload value="#[readUrl('classpath://insertcustomerFlow3test\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://insertcustomerFlow3test\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to insert-customerFlow3" doc:id="ce246c37-4aac-46ae-8c2c-1dd6a2fc0b2d" name="insert-customerFlow3"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="e583e05e-0d64-4dde-b9ac-f6d30bb13fdd" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import insertcustomerFlow3test::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>
