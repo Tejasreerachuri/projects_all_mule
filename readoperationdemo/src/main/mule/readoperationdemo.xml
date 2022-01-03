@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d8c50ffb-cadf-41ef-b702-315b3d0e08f5" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<file:config name="readfiles" doc:name="File Config" doc:id="bef38dd6-7a85-4f54-9f10-869ab7ee66a2" >
+		<file:connection workingDir="C:\Users\Teja sree\Documents\read" />
+	</file:config>
+	<file:config name="writefile" doc:name="File Config" doc:id="764861b6-d876-45d6-877a-8171aaeeeb40" >
+		<file:connection workingDir="C:\Users\Teja sree\Documents\writefile" />
+	</file:config>
+	<file:config name="write2" doc:name="File Config" doc:id="e0d9719b-1c5f-4173-97ee-ed892b3f7602" >
+		<file:connection workingDir="C:\Users\Teja sree\Documents\write2" />
+	</file:config>
+	<flow name="readoperationdemoFlow" doc:id="30cca0ab-974b-4c68-ae5b-d37a5485eea5" >
+		<http:listener doc:name="Listener" doc:id="5fc27e16-7eee-4d32-afa3-3151c0867341" path="/readoperation" config-ref="HTTP_Listener_config"/>
+		<file:read doc:name="Read" doc:id="0dbb9b83-4916-40c5-bfd3-50d5bf85ccd3" path="read.txt" config-ref="readfiles" target="readvar"/>
+		<choice doc:name="Choice" doc:id="8eb48231-31e1-4701-9853-e865140c3b3a" >
+			<when expression="#[isEmpty(payload)]">
+				<file:write doc:name="Write to new folder" doc:id="2e5307e1-6257-4436-8794-c0ff6e47f013" config-ref="writefile" path="writefile.txt" mode="APPEND" >
+					<file:content ><![CDATA[#["/nwelcome Tejasree"]]]></file:content>
+				</file:write>
+				<logger level="INFO" doc:name="Logger" doc:id="8ad147a4-fb13-426f-aa15-24b47b51782b" message="Correlationid-#[vars.Correlationid]-write logger component"/>
+				<set-payload value="file has been successfully" doc:name="Set Payload" doc:id="41aa85e7-67d2-4c48-8b0a-284cd20cd52d" />
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="55c29d28-70a6-4ed3-864a-06cc5351c101">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Name:"file has data",
+	FileOutput:vars.readvar ++ "appending new lines"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<file:write doc:name="Write to new folder" doc:id="c6bacb3d-2a14-4e5f-98e2-b5b600be5647" config-ref="write2" path="write2.txt">
+				</file:write>
+				<set-payload value="file has been written successfully" doc:name="write Payload" doc:id="04ef7c7f-457b-4234-a7b2-cc76e1c3cb5b" />
+				<logger level="INFO" doc:name="write Logger" doc:id="445a2a6d-7dad-47ce-9520-a2db35a7bdc3" message="file has been written successfully" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="read Logger" doc:id="6d0790db-eb40-462e-9c49-41fd5f3d180e" message="#[payload]" />
+	</flow>
+</mule>
