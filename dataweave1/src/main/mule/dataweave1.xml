@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8e6231fd-cb08-437d-a2d1-e04e917ce593" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="930ea7e8-d006-473e-903e-cc7452d03ce0" >
+		<http:request-connection host="api.openweathermap.org/data/2.5/weather?q=kadapa&amp;appid=58857cc17cc4c77e317ac54eed00655f" />
+	</http:request-config>
+	<flow name="dataweave1Flow" doc:id="02304f12-0413-4ef5-b7bc-127abb7d63a2" >
+		<http:listener doc:name="Listener" doc:id="2dc9ae5a-5fb3-40c7-be7e-885cb1a51ba6" config-ref="HTTP_Listener_config" path="/dw1"/>
+		<ee:transform doc:name="Transform Message" doc:id="628c6dc2-bdb5-42b9-a556-3ff45251b1ff" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var data ={
+	"name":"max the mule",
+	"locations":[
+		{
+			"name":"max the house",
+			"address":"1234 mule street",
+			"state":"CA"
+		}
+		
+	]
+}
+---
+[
+	data.name,
+	data.locations
+	
+]
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="dataweave1Flow1" doc:id="144a15b8-55c5-448e-a3c8-1d17a5ee9d27" >
+		<http:listener doc:name="Listener" doc:id="51bc312b-53b9-44d7-8aea-87efb43be31b" config-ref="HTTP_Listener_config" path="/pro"/>
+		<ee:transform doc:name="Transform Message" doc:id="4c4e2011-6fd0-4280-bdfb-704316a19a44" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if(payload.BookId== 110)
+{
+BookName: "Salesforce"
+}else if(payload.BookId==120)
+{
+BookName: "Mulesoft"
+}else if(payload.BookId == 130){
+BookName : "XML"}
+else if(payload.BookId==140){
+BookName : "JSON"
+}else if(payload.BookId == 150) {
+BookName : "light"
+}else{
+BookName : "Does not exist"
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="dataweave1Flow2" doc:id="cc38e160-e271-46e6-be45-edfaa314e816" >
+		<http:listener doc:name="Listener" doc:id="773554bb-8fcf-4632-bafa-b6dd4a09d543" config-ref="HTTP_Listener_config" path="/map"/>
+		<http:request method="GET" doc:name="Request" doc:id="52d3fda9-c19c-4e4e-b282-c18fd9e18c37" config-ref="HTTP_Request_configuration" url="https://api.openweathermap.org/data/2.5/weather?q=kadapa&amp;appid=58857cc17cc4c77e317ac54eed00655f"/>
+		<ee:transform doc:name="Transform Message" doc:id="3888d063-5e19-4277-913f-b434e51e4797" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+"max-temp": payload.main.temp_max-273 ++"celusis",
+"min-temp": payload.main.temp_min-273 ++"celusis"
+]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
