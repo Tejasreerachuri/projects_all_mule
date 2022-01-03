@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="61d657f4-3df5-47bb-982a-a1cb37439b61" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="8d272111-7958-4392-b157-0fa1563af543" >
+		<http:request-connection host="ghytip" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="0c03191a-d592-48a0-97a3-8a5599af129d" >
+		<http:request-connection host="hgjhgjm" />
+	</http:request-config>
+	<flow name="errorhandling1Flow" doc:id="eaeead5e-eb6d-4175-918b-9bb538070ceb" >
+		<http:listener doc:name="Listener" doc:id="8ff8c5be-298b-497d-90b5-7338948bfde0" config-ref="HTTP_Listener_config" path="/continue">
+			<http:error-response>
+				<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+	"message":error.discrpition
+}]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<set-payload value='#["error handling"]' doc:name="Set Payload" doc:id="88b55379-4d9d-499f-803e-6c7365ef6573" />
+		<flow-ref doc:name="Flow Reference" doc:id="4fe96448-12c6-4b8f-8974-ea21ddf23751" name="privateflow"/>
+	</flow>
+	<flow name="privateflow" doc:id="7d3a6040-060e-41cb-8ded-399ec7d9606b" >
+		<set-payload value='#["error being executed"]' doc:name="Set Payload" doc:id="49acbf8a-4d2f-4cf1-9be4-bd7daebea59d" />
+		<http:request method="GET" doc:name="Request" doc:id="0adcad78-5250-4f3d-bfdf-74d8cd5264dc" path="/users" config-ref="HTTP_Request_configuration"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="db6cd6fb-d97f-4a64-a4bb-8a6dcd6b8ac9" type="HTTP:CONNECTIVITY">
+				<ee:transform doc:name="Transform Message" doc:id="77127ec3-9b58-461b-bfcf-749b72048822">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":error.description
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="errorhandling1Flow1" doc:id="afa89075-db8e-4d00-83f6-9abe3d6cb360" >
+		<http:listener doc:name="Listener" doc:id="148b68eb-6f7a-4bb5-a1f6-46eefcdd9976" config-ref="HTTP_Listener_config" path="/propagate">
+			<http:error-response >
+				<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+{
+	"message":error.description
+}]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<set-payload doc:name="Set Payload" doc:id="8a0a5b96-5e1a-446c-934d-e214d553b513" value='#["this is error handling"]'/>
+		<flow-ref doc:name="Flow Reference" doc:id="b5dbbeec-b6e9-444f-83d2-f91e068159b2" name="privateflow2"/>
+	</flow>
+	<flow name="privateflow2" doc:id="9a5a6e5c-4478-4bec-801b-b2c6c62a7f13" >
+		<set-payload value='#["error executed"]' doc:name="Set Payload" doc:id="065a22cb-ae75-405c-a964-af396153a7ae" />
+		<http:request method="GET" doc:name="Request" doc:id="16eff548-7bad-4328-ba6f-fcca26c8ab41" config-ref="HTTP_Request_configuration1" path="/teja"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="24cbb61a-5bfe-4321-aef3-9abf0d5c3ebb" type="HTTP:CONNECTIVITY">
+				<ee:transform doc:name="Transform Message" doc:id="bab85323-0cfa-4ade-8379-47d3807608b6" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
