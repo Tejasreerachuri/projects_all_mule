@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="531a2a62-0c45-4413-8d12-fa9861d62163" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="weekassesmentFlow" doc:id="bcc700c3-7650-4d64-a776-df6f7cc11929" >
+		<http:listener doc:name="Listener" doc:id="4af0a549-50eb-4505-889a-e2ed6c570b6a" config-ref="HTTP_Listener_config" path="/week"/>
+		<ee:transform doc:name="Transform Message" doc:id="e77922fd-9dec-4e5d-bef8-eaf96354e4af" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+{
+"city name" :payload.city.name,
+"minimum temp":payload.list.main.temp_min,
+"Maximum temp" :payload.list.main.temp_max,
+"pressure" :payload.list.main.Pressure,
+"sealevel":payload.list.main.sea_level
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="weekassesmentFlow1" doc:id="11bdd8cf-1653-4894-bb09-b447c0d1305a" >
+		<http:listener doc:name="Listener" doc:id="4abcc8ba-172b-4b7e-96d7-eda89bd8fd55" config-ref="HTTP_Listener_config" path="/week1"/>
+		<ee:transform doc:name="Transform Message" doc:id="7de25658-9b51-4330-98c4-38419dcb6d69" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+"cityid":payload.current.city.cityid,
+"cityname":payload.current.name.cityname,
+"tempareture":payload.]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
