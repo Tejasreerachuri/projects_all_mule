@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="fdd86c80-8971-4502-8996-c8bbffea4b34" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="c7d2a999-4773-400b-8c05-19cfca637399" >
+		<http:request-connection host="ghdsgh" />
+	</http:request-config>
+	<flow name="assessment-4Flow" doc:id="c48af215-8fee-4619-ac10-0ffa535de8f0" >
+		<http:listener doc:name="Listener" doc:id="0e173e90-dba7-4de7-880b-789167aefc83" config-ref="HTTP_Listener_config" path="/assessment4"/>
+		<choice doc:name="Choice" doc:id="3a7a2625-2a5f-4efd-9ebc-3d89e087673c" >
+			<when expression="#[isEmpty(payload)]">
+				<raise-error doc:name="Raise error" doc:id="7557895c-ec83-4e01-ac01-d90f2d8a22a1" type="NO:PAYLOAD"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="7b7d1cad-83d9-4884-b5d2-9344257711c3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "welcome"	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="assessment-4Flow1" doc:id="324981f0-cfea-4904-8e65-5672f089ebeb" >
+		<http:listener doc:name="Listener" doc:id="539007e9-0d6b-4abe-b815-a2e56754f80d" config-ref="HTTP_Listener_config" path="/errorcontinue1"/>
+		<set-payload value='#["error handling"]' doc:name="Set Payload" doc:id="f5f5e464-ba8e-4881-9173-c6ea01fc7955" />
+		<flow-ref doc:name="Flow Reference" doc:id="a27cefe7-5d1c-457c-b9df-9c5bacad6bad" name="subflow"/>
+	</flow>
+	<flow name="subflow" doc:id="5b22639d-e26a-4e00-8dc5-15a64973aadb" >
+		<set-payload value='#["error has been executed"]' doc:name="Set Payload" doc:id="2ffee2ab-ca8a-4118-af71-9799aacc88f2" />
+		<http:request method="GET" doc:name="Request" doc:id="a35f3cce-44b4-4e02-8efa-c646c7fd296d" config-ref="HTTP_Request_configuration" path="/teja"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="f38d2d00-a9ce-4b6c-a6d5-c6cab7538cdc" type="HTTP:CONNECTIVITY">
+				<ee:transform doc:name="Transform Message" doc:id="ffa84ad0-515d-4654-a7fb-445aba0e86ef" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>
