@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="37e1ea96-b872-4d25-bf12-7716cb5aa3ae" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="5c1cb8cb-72ed-4225-a3d8-41b522a27e50" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="learndb" />
+	</db:config>
+	<flow name="deletebatchFlow" doc:id="17284db6-c19a-4ad5-92c3-e3bb87c9269e" >
+		<http:listener doc:name="Listener" doc:id="e4354720-3069-43f9-893a-86e113a751f7" config-ref="HTTP_Listener_config" path="/deletebatch"/>
+		<logger level="INFO" doc:name="Logger" doc:id="be5288b6-a6b0-4923-a972-6ddb8994db4e" message="#[payload]"/>
+		<batch:job jobName="deletebatchBatch_Job" doc:id="fe6eb8a3-4f08-4ce9-ae67-909956dddee0" >
+			<batch:process-records >
+				<batch:step name="Batch_Step1" doc:id="c41fe38a-fc9b-4692-8f86-0ea696d67114" >
+					<db:delete doc:name="Delete" doc:id="ad656fb0-c9bf-4c75-92e6-0ada461fbc01" config-ref="Database_Config">
+						<db:sql ><![CDATA[delete from account_details1 where name = 'suma'
+]]></db:sql>
+					</db:delete>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="a5da7410-2304-459d-a483-d733443e8fbc" streaming="true">
+						<logger level="INFO" doc:name="Logger" doc:id="797c5dd9-bc83-4e6a-b05a-29ac82bc2bc6" message="#[payload]"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="b4b2c407-9887-438f-89d0-417917376a93" message="#[payload]"/>
+			</batch:on-complete>
+		</batch:job>
+		<ee:transform doc:name="Transform Message" doc:id="809dee7c-dea5-42e3-955f-dc7ad86d3a1b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="deletebatchFlow1" doc:id="acffe739-8d3e-47fc-93ed-3d7330f23307" >
+		<http:listener doc:name="Listener" doc:id="f285160b-0156-4e8b-8325-37a11fc75db6" config-ref="HTTP_Listener_config" path="/batchupdate"/>
+		<logger level="INFO" doc:name="Logger" doc:id="385fa221-5d3a-4337-ab4f-07e0146dd437" message="#[payload]"/>
+		<batch:job jobName="deletebatchBatch_Job1" doc:id="97935f32-ecca-4e53-87de-9d985d4e6ee8" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="12a80c28-1df9-4b0b-93f6-4b922479ef35" >
+					<db:update doc:name="Update" doc:id="2041d7d6-b9a0-4e5b-a187-1a19e69ef7f3" config-ref="Database_Config">
+						<db:sql ><![CDATA[update account_details1 set name = 'sree' where accountno= 111]]></db:sql>
+					</db:update>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="f0541f8a-ab6e-48f6-a99d-2a95075bba5a" streaming="true">
+						<logger level="INFO" doc:name="Logger" doc:id="ee17be9b-3eca-4bd1-8a54-b7a1816efb8c" message="#[payload]"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="8fab0d85-d470-4109-8726-c2f17aa6e288" message="#[payload]"/>
+			</batch:on-complete>
+		</batch:job>
+		<ee:transform doc:name="Transform Message" doc:id="d2d6968e-ac4c-49dd-923d-62a711655d82" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
