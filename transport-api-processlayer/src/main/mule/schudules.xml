@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="schudulesFlow2" doc:id="87ba8fa5-1665-4704-a9e7-a8878b143848" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="3dc91912-c0d1-4d66-9b98-e0d36aee602e" >
+			<route >
+				<http:request method="GET" doc:name="Request" doc:id="642e908a-bb66-45fc-847c-2b0571449bd6" config-ref="Fastgo_HTTP_Request_configuration" path="/api/{transportType}/{transportCompany}/schudules">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"transactionId" : attributes.headers.transactionId
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"transportType" : attributes.uriParams.transportType,
+	"transportCompany" : attributes.queryParams.companyName default "travelontrip"
+
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"departureLocationCode" : attributes.queryParams.departureLocationCode,
+	"destinationLocationCode" : attributes.queryParams.destinationLocationCode
+}]]]></http:query-params>
+		</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="43ebd77d-fb83-4137-88e3-f77ee947f1ba">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</route>
+			<route >
+				<http:request method="GET" doc:name="Request" doc:id="71b50f88-5772-44a8-beda-3617b3dc46dd" config-ref="Travelontrip_HTTP_Request_configuration" path="/api/{transportType}/{transportCompany}/schudule" responseTimeout="500000">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"transactionId" : attributes.headers.transactionId
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"transportType" : attributes.uriParams.transportType,
+	"transportCompany" : attributes.queryParams.companyName default "travelontrip"
+
+}]]]></http:uri-params>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"departureLocationCode" : attributes.queryParams.departureLocationCode,
+	"destinationLocationCode" : attributes.queryParams.destinationLocationCode
+}]]]></http:query-params>
+		</http:request>
+				<ee:transform doc:name="Transform Message" doc:id="621b65ab-8a8b-440e-a440-bc92b040f778" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="8e75d201-8882-4f95-ad0f-78fa43858a76" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload..payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

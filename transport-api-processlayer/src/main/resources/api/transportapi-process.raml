@@ -1,0 +1,15 @@
+#%RAML 1.0
+title: transportapi-process
+resourceTypes:
+  routeData: !include api/routeresourceType.raml
+  schuduleData: !include api/schuduleresourceType.raml
+/bookings:
+ /{transportType}:
+  /routes:
+    type:
+      routeData
+   
+  /schudule:
+    type:
+      schuduleData
+   
