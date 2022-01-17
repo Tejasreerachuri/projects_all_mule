@@ -1,0 +1,16 @@
+#%RAML 1.0
+title: transportapi-experience-webapplication
+description: "This is an Transport Applications"
+resourceTypes:
+   routeData: !include api/routesresourceType.raml
+   schuduleData: !include api/schuduleresourceType.raml
+/bookings:
+  /{transportTypes}:
+     /routes:
+       type:
+        routeData
+     /schudules:
+        type:
+          schuduleData
+       
+        
