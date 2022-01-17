@@ -1,0 +1,21 @@
+#%RAML 1.0 ResourceType
+get:
+     headers: 
+      transactionId: 
+         type: string
+         minLength: 1
+     queryParameters:
+      companyName:
+        required: false
+        type: string
+      depatureLocationcode:
+        required: false
+        type: string
+      destinationLocationcode:
+        required: false
+        type: string
+     responses:
+      200:
+        body:
+          application/json:
+            examples: !include examples/routeexample.raml
